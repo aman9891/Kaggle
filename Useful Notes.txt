@@ -1,0 +1,128 @@
+-------------------------------------------Useful Commands------------------------------------------------------------
+
+
+list(dataframe_name) - give a list of column names in the dataframe
+
+
+Compared to “head()” or “tail()”, the df.sample() function selects and prints out serveral random row in the csv file
+
+
+For categorical column:
+df[column].value_counts() - It simply counts the numbers of samples in each subcategory
+preprocessing.LabeleEncoder - Labels different categories in the same column (good for binary but not multiclass because ML assumes relation)
+pd.get_dummies(categorical_subset) - No need for individually passing columns. We can pass a dataframe (will convert all categorical column and leave numerical)
+
+
+-------------------------------------------Graphs-------------------------------------------------------------------------
+
+
+sns.heatmap(data=Train_Master.isnull(),cbar=False,yticklabels=False,cmap='cividis') - Plot rectangular data as a color-encoded matrix (here data = missing values)
+
+plt.subplots() - To have multiple plots in same graph
+
+Train_Master.corr() - Show the correlation between all attributes of the dataframe
+
+sns.boxplot() - Plot the graph with given x & y attributes
+
+sns.scatterplot() - Plot the values of the given attribute
+
+sns.countplot() - Plot the count of the given attribute
+
+sns.factorplot() - Used to plot the categorical data
+
+
+------------------------------------------Feature Selection-----------------------------------------------------------------
+
+
+http://scikit-learn.org/stable/modules/feature_selection.html
+
+Feature Selection is a very critical component in a Data Scientist’s workflow. When models are presented data with very high dimensionality, it usually causes following problems:
+
+	1. Training time increases exponentially with number of features.
+	2. Models have increasing risk of overfitting with increasing number of features.
+	3. Data redundancy does not benefit model in any way and instead increases complexity. Hence, redundant data removal is an important part to maximize feature relevancy while reducing feature redundancy.
+
+There are different feature selection methods, which help in reducing the dimensions without much loss of the total information. It also helps to make sense of the features and its importance.
+
+
+Removing features with low variance
+	VarianceThreshold is a simple baseline approach to feature selection. It removes all features whose variance doesn’t meet some threshold. By default, it removes all zero-variance features, i.e. features that have the same value in all samples (or where p = 1).
+
+		class sklearn.feature_selection.VarianceThreshold(threshold=0.0)
+
+	As an example, suppose that we have a dataset with boolean features, and we want to remove all features that are either one or zero (on or off) in more than 80% of the samples. We can use following function:
+		
+		Var[X] = p(1-p), where p = 0.8
+
+
+
+Univariate Feature Selection
+	Univariate feature selection works by selecting the best features based on univariate statistical tests, i.e, the relationship between that particular feature and target label is considered independent of other features.
+		(a) SelectKBest - Selects K highest scoring features based on F-score (higher the better)
+		(b) SelectPercentile - Selects k% highest scoring features based on F-score (higher the better)
+
+		class sklearn.feature_selection.SelectKBest(score_func=<function f_classif>, k=10)
+		class sklearn.feature_selection.SelectPercentile(score_func=<function f_classif>, percentile=10)
+
+	These objects take as input a scoring function (listed below) that returns univariate F-scores (higher the better) and p-values (lower the better). But remember, only F-scores are considered during feature selection not p-values. Following are the scoring functions:
+		(a) For regression: f_regression, mutual_info_regression
+		(b) For classification: chi2, f_classif, mutual_info_classif
+
+	Note: The methods based on F-test estimate the degree of linear dependency between two random variables. On the other hand, mutual information methods can capture any kind of statistical dependency, but being nonparametric, they require more samples for accurate estimation. Thus it is better to use mutual information methods over F-test.
+
+	Read comparison of F-test and Mutual Information: http://scikit-learn.org/stable/auto_examples/feature_selection/plot_f_test_vs_mi.html#sphx-glr-auto-examples-feature-selection-plot-f-test-vs-mi-py
+
+
+Recursive Feature Elimination
+	Given an external estimator that assigns weights to features (e.g., the coefficients of a linear model), recursive feature elimination (RFE) is to select features by recursively considering smaller and smaller sets of features. First, the estimator is trained on the initial set of features and the importance of each feature is obtained either through a coef_ attribute or through a feature_importances_ attribute. Then, the least important features are pruned from current set of features. That procedure is recursively repeated on the pruned set until the desired number of features to select is eventually reached.
+
+		class sklearn.feature_selection.RFE(estimator, n_features_to_select=None, step=1, verbose=0)
+			step = If greater than or equal to 1, then step corresponds to the (integer) number of features to remove at each iteration. If within (0.0, 1.0), then step corresponds to the percentage (rounded down) of features to remove at each iteration.
+
+			estimator - A supervised learning estimator with a fit method that provides information about feature importance either through a coef_ attribute or through a feature_importances_ attribute.
+
+
+		class sklearn.feature_selection.RFECV(estimator, step=1, min_features_to_select=1, cv=3, scoring=None, verbose=0, n_jobs=None)
+			step = If greater than or equal to 1, then step corresponds to the (integer) number of features to remove at each iteration. If within (0.0, 1.0), then step corresponds to the percentage (rounded down) of features to remove at each iteration.
+
+			cv = Determines the cross-validation splitting strategy, ie, the number of folds
+
+			estimator - A supervised learning estimator with a fit method that provides information about feature importance either through a coef_ attribute or through a feature_importances_ attribute.
+
+
+In this article, I discuss following feature selection techniques and their traits.
+
+1. Filter Methods
+2. Wrapper Methods and
+3. Embedded Methods
+
+	Filter Methods
+		Filter Methods considers the relationship between features and the target variable to compute the importance of features.
+
+		Mutual Information
+			Mutual Information between two variables measures the dependence of one variable to another. If X and Y are two variables, and
+
+			1. If X and Y are independent, then no information about Y can be obtained by knowing X or vice versa. Hence their mutual information is 0.
+			2. If X is a deterministic function of Y, then we can determine X from Y and Y from X with mutual information 1.
+			3. When we have Y = f(X,Z,M,N), 0 < mutual information < 1
+
+			We can select our features from feature space by ranking their mutual information with the target variable.
+
+			Sklearn offers feature selection with Mutual Information for regression and classification tasks.
+				sklearn.feature_selection.mututal_info_regression 
+				sklearn.feature_selection.mututal_info_classif
+
+	
+	Wrapper Methods
+		Wrapper Methods generate models with a subsets of feature and gauge their model performances.
+
+		Forward Search
+			This method allows you to search for the best feature w.r.t model performance and add them to your feature subset one after the other.
+
+		Recursive Feature Elimination
+			As the name suggests, this method eliminates worst performing features on a particular model one after the other until the best subset of features are known.
+
+
+	Embedded Methods
+		Tree based models
+			Calculates feature importance as they need to keep the best performing features close to the root of the tree. Constructing a decision tree involves calculating the best predictive feature. The feature importance in tree based models are calculated based on Gini Index, Entropy or Chi-Square value.
