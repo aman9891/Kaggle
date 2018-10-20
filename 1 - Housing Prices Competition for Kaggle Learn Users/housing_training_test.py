@@ -1,6 +1,6 @@
 import warnings
 import pandas as pd
-from sklearn.impute import
+from sklearn.impute import SimpleImputer
 from sklearn.ensemble import RandomForestRegressor
 
 # To supress the warnings in console output
