@@ -12,13 +12,13 @@ test_file_path = "test.csv"
 
 # --------------------------------Training Data--------------------------------------------------------
 
-# Reading training data from file
+# Loading training data from file
 training_data = pd.read_csv(training_file_path)
 
 # Removing observations missing label value
 training_data = training_data.dropna(axis = 0, subset = ["SalePrice"])
 
-# Dividing data into features (we are ignoring Id column during training) and label
+# Dividing data into features (we are ignoring Id column) and label (or actual output)
 features_training_data = training_data.iloc[:,1:80]
 label_training_data = training_data.SalePrice
 
@@ -45,7 +45,7 @@ final_training_data = pd.concat([modified_numerical_training_data, modified_cate
 selected_features = ["LotArea", "GrLivArea", "YearBuilt", "BsmtFinSF1", "OverallQual", "TotalBsmtSF", "1stFlrSF"]
 training_data_with_selected_features = final_training_data[selected_features]
 
-# Training the model
+# Training the model (We already know RandomForest is giving best results)
 random_forest_model = RandomForestRegressor(random_state=1)
 random_forest_model.fit(training_data_with_selected_features, label_training_data)
 

@@ -19,13 +19,13 @@ training_file_path = "train.csv"
 
 # --------------------------------Training Data--------------------------------------------------------
 
-# Reading training data from file
+# Load training data from file
 training_data = pd.read_csv(training_file_path)
 
 # Removing observations missing label value
 training_data = training_data.dropna(axis = 0, subset = ["SalePrice"])
 
-# Dividing data into features (we are ignoring Id column during training) and label
+# Dividing training data into features (we are ignoring Id column) and label (or actual output)
 features_training_data = training_data.iloc[:,1:80]
 label_training_data = training_data.SalePrice
 
@@ -48,7 +48,7 @@ modified_categorical_training_data = pd.get_dummies(categorical_training_data)
 modified_numerical_training_data.reset_index(drop=True, inplace=True)
 modified_categorical_training_data.reset_index(drop=True, inplace=True)
 
-# Combine imputed data back into single data
+# Combine imputed data back into single dataframe
 final_training_data = pd.concat([modified_numerical_training_data, modified_categorical_training_data], axis=1)
 
 # Removing features with very low variance
@@ -63,19 +63,19 @@ selectkbest_fs.fit_transform(training_data_after_variance_fs, train_Y)
 print(training_data_after_variance_fs.columns[selectkbest_fs.get_support()])
 print(selectkbest_fs.scores_[selectkbest_fs.get_support()])"""
 
-# Using RFE with RandomForest
-"""estimator_rfe = RandomForestRegressor(random_state=1)
-rfe_fs = RFE(estimator_rfe, n_features_to_select=10, step=2)
-rfe_fs.fit_transform(training_data_after_variance_fs, train_Y)
-print(training_data_after_variance_fs.columns[rfe_fs.get_support()])
-print(rfe_fs.estimator_.feature_importances_)"""
-
 # Using RFE with XGBoost
 """estimator_rfe = XGBRegressor(random_state=1)
 rfe_fs = RFE(estimator_rfe, n_features_to_select=10, step=2)
 rfe_fs.fit_transform(training_data_after_variance_fs, train_Y)
 print(training_data_after_variance_fs.columns[rfe_fs.get_support()])
 print(rfe_fs.estimator_.feature_importances_)"""
+
+# Using RFE with RandomForest (as this model gives best result out of the three)
+estimator_rfe = RandomForestRegressor(random_state=1)
+rfe_fs = RFE(estimator_rfe, n_features_to_select=10, step=2)
+rfe_fs.fit_transform(training_data_after_variance_fs, train_Y)
+print(training_data_after_variance_fs.columns[rfe_fs.get_support()])
+print(rfe_fs.estimator_.feature_importances_)
 
 # Training data with only selected features
 selected_features = ["LotArea", "GrLivArea", "YearBuilt", "BsmtFinSF1", "OverallQual", "TotalBsmtSF", "1stFlrSF"]
@@ -109,6 +109,6 @@ final_validation_data = pd.concat([modified_numerical_validation_data, modified_
 # Validation data with selected features
 validation_data_with_selected_features = final_validation_data[selected_features]
 
-# Predictions on Validation data
+# Predictions on Validation data and calculating error rate  (it should be less)
 validation_data_predictions = random_forest_model.predict(validation_data_with_selected_features)
 print("The error on validation data using Random Forest is =", mean_absolute_error(val_Y, validation_data_predictions))
